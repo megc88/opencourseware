@@ -157,7 +157,7 @@ def update_hand(hand, word):
     return new_hand
 
 #
-# Problem #3: Test word validity
+# Problem #3: Test word valid
 #
 def is_valid_word(word, hand, word_list):
     """
@@ -221,7 +221,22 @@ def play_hand(hand, word_list):
       word_list: list of lowercase strings
       
     """
-    # TO DO ...
+    total_score = 0
+    print "Your letters: "
+    display_hand(hand)
+    while (sum(hand.values()) >0):
+        word = raw_input("Play a word! \nOr quit at any time by typing '.', but you don't want to do that! \n")
+        if word == ".":
+            print "Thanks for playing!"
+            break
+        if not is_valid_word(word, hand, word_list):
+            print "That is not a valid word. Please try again."
+        else:
+            print "Nice work! That word earned: " + str(get_word_score(word, HAND_SIZE)) + " points!"
+            print "Your letters: "
+            display_hand(update_hand(hand, word))
+            total_score = total_score + get_word_score(word, HAND_SIZE)
+    print "Your final score is " + str(total_score)
 
 #
 # Problem #5: Playing a game
@@ -244,9 +259,23 @@ def play_game(word_list):
     """
     # TO DO...
 
-#
+    print "Welcome to our word game!"
+    user_choice = raw_input("If you'd like to play a new hand, type 'n'.\nIf you'd like to play the last hand again, type 'r'.\nIf you'd like to exit the game, type 'e'.\n")
+    if user_choice == "r":
+        global hand
+        play_hand(hand, word_list)
+        play_game(word_list)
+    if user_choice =="n":
+        hand = deal_hand(n)
+        play_hand(hand, word_list)
+        play_game(word_list)
+    if user_choice == "e":
+        print "Ok. Hope to see you again soon!"
+#   
 # Build data structures used for entire session and play game
 #
 if __name__ == '__main__':
+    n = 7
     word_list = load_words()
     play_game(word_list)
+    hand = deal_hand(n)
