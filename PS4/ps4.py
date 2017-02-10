@@ -314,7 +314,12 @@ def apply_shifts(text, shifts):
     >>> apply_shifts("Do Androids Dream of Electric Sheep?", [(0,6), (3, 18), (12, 16)])
     'JufYkaolfapxQdrnzmasmRyrpfdvpmEurrb?'
     """
-    ### TODO.
+    encoded_text = text
+    for i, (a, b) in enumerate(shifts):
+        encoded_text = encoded_text[:a] + apply_coder(encoded_text[a:], build_encoder(b))
+    return encoded_text
+   
+               
  
 #
 # Problem 4: Multi-level decryption.
