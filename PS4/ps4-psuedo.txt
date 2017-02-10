@@ -1,0 +1,25 @@
+Your algorithms should be plain English explanations for the steps your program will take to solve these problems.
+
+Write out your algorithm for Problem 2 here:
+
+
+Write out your algorithm for Problem 4 here:
+Problem 2a:
+-Take in a text string
+-Check to see if all words are valid words, if so, return
+-Initialize a variable for your guess of the shift amount at 1, guess_shift. 
+-Initialize a variable for total number of valid words at 0, valid_words
+-Initialize a variable for the shift key at 1, shift
+-Run the text through an decoder using your shift_guess. Test shift_guess 1 to 27:
+while shift_guess < 27
+-split the string into words to be able to check how many valid words
+-for word in text
+	if
+		result > valid_words
+		valid words = result
+		shift = guess_shift
+		shift += 1
+	else
+		shift +=1
+-return shift set to the shift_guess that returns the most valid words
+-	
