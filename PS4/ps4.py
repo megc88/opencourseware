@@ -124,14 +124,22 @@ def build_coder(shift):
     import string
     alphabet = string.ascii_lowercase + ' '
     cypher_dict = {}
+    ##assign key value pairs as each lowercase letter in the alphabet and a space
+    ## as keys and the letter that results from acting on the key with the shift integer
+    ## as the value
     for letter in alphabet:
         key_index = alphabet.index(letter)
         value_index = (key_index + shift) % len(alphabet)
         cypher_dict[letter] = alphabet[value_index]
+    #end for
+    ##assigns key value paris as each uppercase letter in the alphabet as keys
+    ##and the letter that results from acting on the key with the shift integer
+    ## as the value
     for letter in alphabet[:-1]:
         key_index = alphabet.index(letter)
         value_index = (key_index + shift) % len(alphabet)
         cypher_dict[letter.upper()] = alphabet.upper()[value_index]
+    #end for
     return cypher_dict
     
   
@@ -197,6 +205,7 @@ def build_decoder(shift):
     assert 0 <= shift < 27
     encoder = build_encoder(shift)
     decoder = {}
+    ## build a decoding dictionary by switching the key/value pairs of an encoded dictionary
     for key in encoder.keys():
         decoder[encoder.get(key)] = key
     return decoder
@@ -218,6 +227,9 @@ def apply_coder(text, coder):
     'Hello, world!'
     """
     cypher_text = ""
+    ## check to see if the character in the text string is in the coder dictionary,
+    ## if not, add to cypher_text as is, if so, add the value found at that key
+    ## in the dictionary to the cypher_text
     for char in text:
         if char not in coder.keys():
             cypher_text += char
@@ -245,7 +257,9 @@ def apply_shift(text, shift):
     >>> apply_shift('This is a test.', 8)
     'Apq hq hiham a.'
     """
-    return apply_coder(text, build_encoder(shift))
+    ## build a dictionary using the given shift amount and use it to return the
+    ## given text string shifted by the shift amount
+    return apply_coder(text, build_coder(shift))
    
 #
 # Problem 2: Codebreaking.
@@ -266,32 +280,25 @@ def find_best_shift(wordlist, text):
     >>> apply_coder(s, build_decoder(8)) returns
     'Hello, world!'
     """
-    guess_shift = 1
-    shift = 1
-    most_valid_words = 0
+    shift = 0
     valid_words = 0
-
-    for word in text.split():
-        if not is_word(wordlist,word):
-            break
-        else:
-            return text
-    while guess_shift < 27:   
-        for word in apply_coder(text, build_decoder(guess_shift)).split():
-            #print word
-            print guess_shift
+    ##apply a shift value to the given text and check it see if the result contains
+    ## all valid words, if not, check a new shift, if so, return the string decoded
+    ## by that shift
+    while shift < 27:
+        decoded_text = apply_coder(text, build_decoder(shift))
+        for word in decoded_text.split():
             if is_word(wordlist, word):
                 valid_words += 1
-                #print word
-        if valid_words > most_valid_words:
-                most_valid_words = valid_words
-                print "most valid", most_valid_words
-                shift = guess_shift
-                print "shift", shift
-                #print guess_shift
-        guess_shift +=1
+            #end if
+        #end for
+        if valid_words == len(decoded_text.split()):
+            break
+        #end if
+        shift +=1
         valid_words = 0
-    return apply_coder(text,build_decoder(shift))
+    #end while
+    return decoded_text
  
     
    
@@ -314,12 +321,13 @@ def apply_shifts(text, shifts):
     >>> apply_shifts("Do Androids Dream of Electric Sheep?", [(0,6), (3, 18), (12, 16)])
     'JufYkaolfapxQdrnzmasmRyrpfdvpmEurrb?'
     """
-    encoded_text = text
+    
+    decoded_text = text[:]
     for i, (a, b) in enumerate(shifts):
-        encoded_text = encoded_text[:a] + apply_coder(encoded_text[a:], build_encoder(b))
-    return encoded_text
+        decoded_text = decoded_text[:a] + apply_coder(decoded_text[a:], build_decoder(b))
+    return decoded_text
    
-               
+   ## fix this so it goes both ways            
  
 #
 # Problem 4: Multi-level decryption.
@@ -353,8 +361,15 @@ def find_best_shifts(wordlist, text):
     >>> shifts = find_best_shifts(wordlist, s)
     >>> print apply_shifts(s, shifts)
     Do Androids Dream of Electric Sheep?
+    given a list of strings where the strings are valid words, and a string of characters that resulted from set of words
+    being acted on by a multilevel Ceasear Cypher.
+    Return a list of tuples where the first item in each tuple is the starting position and the second item is
+    the shift amount. Such that when the input string is shifted from the starting position to the end of the string
+    for each tuple, the result is a string of valid words where each word is contained in the word list
     """
-
+    return find_best_shifts_rec(wordlist, text, 0)
+        
+        
 def find_best_shifts_rec(wordlist, text, start):
     """
     Given a scrambled string and a starting position from which
@@ -369,11 +384,42 @@ def find_best_shifts_rec(wordlist, text, start):
     start: where to start looking at shifts
     returns: list of tuples.  each tuple is (position in text, amount of shift)
     """
-    ### TODO.
-
-
-def decrypt_fable():
-     """
+    #apply a shift amount to the string until you get to a space and then check to see if the word prior to the shift is a valid word,
+    ## if so, apply that shift to the rest of the string and record the shift amount and starting position. Start your check again at the next
+    ## index after the space, and restarting your shift at 0
+    ##if you find a space but the word prior isn't valid, increase shift by one and restart the for loop
+    ## if no spaces and valid words are produced with the existing shift, increase shift by 1 and try again.
+    ## alwasy check whether the last word of the string is a valid word to ensure all words all shifts are included
+    shift = 0
+    while 0<=shift<27:
+        decoded_text = text[:start] + apply_coder(text[start:], build_decoder(shift))
+        #check to see if the last word is valid after being acted on by the shift
+        if is_word(wordlist, decoded_text[start:]) and shift > 0:
+            return [(start, shift),]
+        #end if
+        #check to see if the last word is valid, if the shift was just 0, no need to return final start, shift tuple
+        if is_word(wordlist, decoded_text[start:]) and shift == 0:
+            return
+        #end if
+        for index in range(start, len(decoded_text)):
+            #iterate over the decoded text, when you find a space, check to see if word prior is valid, if so, pass the shift value used to decode
+            #and where you started decode from
+            #recurse over the string starting at the next index and restarting your shift value
+            if decoded_text[index]== ' ' and is_word(wordlist, decoded_text[start:index]):
+                return [(start, shift),] +  (find_best_shifts_rec(wordlist, decoded_text, index+1))
+            #end if
+            #if you find a space and that the word prior isn't valid, you know that shift doesn't work, so try the next shift
+            if decoded_text[index]== ' ' and not is_word(wordlist, decoded_text[start:index]):
+                break
+            #end if
+        #end for
+        shift +=1
+    #end while
+    #if you've gone through all of your shifts and you don't find any spaces and your last word isn't valid, return an empty list
+    return []
+    
+def decrypt_fable(wordlist):
+    """
     Using the methods you created in this problem set,
     decrypt the fable given by the function get_fable_string().
     Once you decrypt the message, be sure to include as a comment
@@ -382,7 +428,10 @@ def decrypt_fable():
 
     returns: string - fable in plain text
     """
-    ### TODO.
+    fable = get_fable_string()
+    multi_factor_cypher = find_best_shifts(wordlist, fable)
+    print multi_factor_cypher
+    return apply_shifts(fable, multi_factor_cypher)
 
 
 
@@ -394,3 +443,9 @@ def decrypt_fable():
 #
 #
 
+def test(wordlist):
+    s = random_scrambled(wordlist, 15)
+    print s, "random words"
+    shifts=find_best_shifts(wordlist, s)
+    print shifts, "shifts"
+    print apply_shifts(s, shifts), "decoded word"
